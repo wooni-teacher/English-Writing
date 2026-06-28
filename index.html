@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>영어 Writing 연습</title>
-    <script src="https://cdn.jsdelivr.net/npm/iink-ts@1.2.0/dist/iink.min.js"></script>
+    <!-- ✅ CDN 주소 변경 -->
+    <script src="https://unpkg.com/iink-ts@1.2.0/dist/iink.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -17,295 +17,131 @@
             align-items: center;
             padding: 20px;
         }
-
-        h1 {
-            color: white;
-            font-size: 2em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
+        h1 { color: white; font-size: 2em; margin-bottom: 10px; }
+        .score-display { color: white; font-size: 1.2em; margin-bottom: 15px; font-weight: bold; }
         .progress-bar-container {
-            width: 100%;
-            max-width: 700px;
+            width: 100%; max-width: 700px;
             background: rgba(255,255,255,0.3);
-            border-radius: 20px;
-            height: 20px;
-            margin-bottom: 20px;
-            overflow: hidden;
+            border-radius: 20px; height: 20px;
+            margin-bottom: 20px; overflow: hidden;
         }
-
         .progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #f9d423, #ff4e50);
-            border-radius: 20px;
-            transition: width 0.5s ease;
+            border-radius: 20px; transition: width 0.5s ease;
         }
-
-        .score-display {
-            color: white;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            font-weight: bold;
+        .mode-selector {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            flex-wrap: wrap; justify-content: center;
         }
-
+        .mode-btn {
+            padding: 10px 20px; border-radius: 50px;
+            border: 2px solid white; background: transparent;
+            color: white; font-size: 0.9em; cursor: pointer;
+        }
+        .mode-btn.active { background: white; color: #764ba2; }
         .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            width: 100%;
-            max-width: 700px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            background: white; border-radius: 20px; padding: 30px;
+            width: 100%; max-width: 700px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
         }
-
-        .question-area {
-            text-align: center;
-            margin-bottom: 20px;
+        .status {
+            text-align: center; padding: 8px; border-radius: 10px;
+            margin-bottom: 15px; font-weight: bold; font-size: 0.95em;
         }
-
-        .question-label {
-            font-size: 1em;
-            color: #888;
-            margin-bottom: 5px;
-        }
-
+        .status.connecting { background: #fff3cd; color: #856404; }
+        .status.ready { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .question-label { font-size: 1em; color: #888; text-align: center; margin-bottom: 5px; }
         .question-text {
-            font-size: 2em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+            font-size: 2em; font-weight: bold; color: #333;
+            text-align: center; margin-bottom: 5px;
         }
-
-        .question-hint {
-            font-size: 1em;
-            color: #aaa;
-            min-height: 24px;
+        .question-hint { font-size: 1em; color: #aaa; text-align: center; min-height: 24px; margin-bottom: 15px; }
+        #editor-wrap {
+            width: 100%; height: 250px;
+            border: 3px dashed #ccc; border-radius: 15px;
+            overflow: hidden; background: #f9f9f9; position: relative;
         }
-
-        /* MyScript 에디터 컨테이너 */
-        #editor {
-            width: 100%;
-            height: 220px;
-            border: 3px dashed #ccc;
-            border-radius: 15px;
-            background: #f9f9f9;
-            position: relative;
-            touch-action: none;
-            cursor: crosshair;
+        #editor { width: 100%; height: 100%; touch-action: none; }
+        .recognized-box {
+            margin-top: 12px; padding: 12px; background: #f0f0f0;
+            border-radius: 10px; text-align: center;
+            font-size: 1.2em; font-weight: bold; min-height: 48px; color: #333;
         }
-
-        #editor:focus {
-            outline: none;
-            border-color: #764ba2;
-        }
-
-        .recognized-text {
-            margin-top: 12px;
-            padding: 12px 15px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            font-size: 1.1em;
-            color: #333;
-            min-height: 45px;
-            text-align: center;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .recognized-label {
-            font-size: 0.8em;
-            color: #aaa;
-            text-align: center;
-            margin-top: 4px;
-        }
-
         .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: flex; gap: 10px; margin-top: 15px;
+            justify-content: center; flex-wrap: wrap;
         }
-
         button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1em;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
+            padding: 12px 24px; border: none; border-radius: 50px;
+            font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.2s;
         }
-
         button:active { transform: scale(0.95); }
-
         .btn-clear { background: #ff6b6b; color: white; }
-        .btn-check {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            flex: 1;
-            max-width: 200px;
-        }
+        .btn-check { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
         .btn-next { background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; }
         .btn-hint { background: #ffd93d; color: #333; }
-        .btn-undo { background: #aaa; color: white; }
-
         .result-box {
-            margin-top: 15px;
-            padding: 15px 20px;
-            border-radius: 15px;
-            text-align: center;
-            font-size: 1.3em;
-            font-weight: bold;
-            display: none;
+            margin-top: 15px; padding: 15px; border-radius: 15px;
+            text-align: center; font-size: 1.2em; font-weight: bold; display: none;
         }
-
-        .result-correct {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
-        }
-
-        .result-wrong {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-        }
-
-        .answer-display {
-            font-size: 0.9em;
-            margin-top: 8px;
-            color: #555;
-        }
-
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .mode-btn {
-            padding: 10px 20px;
-            border-radius: 50px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-            background: white;
-            color: #764ba2;
-        }
-
+        .result-correct { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .result-wrong { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
         .word-list-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 700px;
+            background: white; border-radius: 20px; padding: 20px;
+            width: 100%; max-width: 700px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-
-        .word-list-panel h3 {
-            color: #764ba2;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
+        .word-list-panel h3 { color: #764ba2; margin-bottom: 15px; }
         .word-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;
         }
-
         .word-item {
-            background: #f0f0f0;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: 0.85em;
-            text-align: center;
+            background: #f0f0f0; border-radius: 10px;
+            padding: 8px 12px; font-size: 0.85em; text-align: center;
         }
-
-        .word-item.done {
-            background: #d4edda;
-            color: #155724;
-        }
-
+        .word-item.done { background: #d4edda; color: #155724; }
         .word-item .ko { color: #888; font-size: 0.8em; }
-        .word-item .en { font-weight: bold; color: #333; }
-
-        .streak-display { color: #ffd93d; }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            margin-bottom: 10px;
-        }
-
-        .status-connecting { background: #fff3cd; color: #856404; }
-        .status-ready { background: #d4edda; color: #155724; }
-        .status-error { background: #f8d7da; color: #721c24; }
-
+        .word-item .en { font-weight: bold; }
         @keyframes fall {
             to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        @media (max-width: 500px) {
-            h1 { font-size: 1.4em; }
-            .question-text { font-size: 1.5em; }
-            .card { padding: 20px; }
         }
     </style>
 </head>
 <body>
 
 <h1>✏️ 영어 Writing 연습</h1>
-
 <div class="score-display">
-    점수: <span id="scoreText">0</span>점 &nbsp;|&nbsp;
-    <span class="streak-display">🔥 연속: <span id="streakText">0</span></span>
+    점수: <span id="scoreText">0</span>점 &nbsp;|&nbsp; 🔥 연속: <span id="streakText">0</span>
 </div>
-
 <div class="progress-bar-container">
     <div class="progress-bar" id="progressBar" style="width:0%"></div>
 </div>
-
 <div class="mode-selector">
-    <button class="mode-btn active" onclick="setMode('ko-to-en')" id="mode1">🇰🇷 → 🇺🇸 한글 보고 영어 쓰기</button>
-    <button class="mode-btn" onclick="setMode('en-to-ko')" id="mode2">🇺🇸 → 🇰🇷 영어 보고 한글 쓰기</button>
+    <button class="mode-btn active" onclick="setMode('ko-to-en')" id="mode1">🇰🇷→🇺🇸 한글 보고 영어 쓰기</button>
     <button class="mode-btn" onclick="setMode('sentence')" id="mode3">📝 문장 쓰기</button>
 </div>
 
 <div class="card">
-    <div class="question-area">
-        <div id="statusBadge" class="status-badge status-connecting">⏳ MyScript 연결 중...</div>
-        <div class="question-label" id="questionLabel">이 단어를 영어로 써보세요!</div>
-        <div class="question-text" id="questionText">-</div>
-        <div class="question-hint" id="questionHint"></div>
+    <div id="statusBox" class="status connecting">⏳ MyScript 연결 중...</div>
+    <div class="question-label" id="questionLabel">이 단어를 영어로 써보세요!</div>
+    <div class="question-text" id="questionText">잠시만요...</div>
+    <div class="question-hint" id="questionHint"></div>
+
+    <div id="editor-wrap">
+        <div id="editor"></div>
     </div>
 
-    <!-- MyScript 에디터 -->
-    <div id="editor"></div>
-
-    <div class="recognized-text" id="recognizedText">✍️ 위에 손으로 써보세요!</div>
-    <div class="recognized-label">인식된 텍스트</div>
+    <div class="recognized-box" id="recognizedBox">✍️ 손으로 쓰면 여기에 인식돼요</div>
 
     <div class="btn-row">
         <button class="btn-hint" onclick="showHint()">💡 힌트</button>
-        <button class="btn-undo" onclick="undoEditor()">↩️ 되돌리기</button>
         <button class="btn-clear" onclick="clearEditor()">🗑️ 지우기</button>
         <button class="btn-check" onclick="checkAnswer()">✅ 확인</button>
         <button class="btn-next" onclick="nextQuestion()">➡️ 다음</button>
     </div>
-
     <div class="result-box" id="resultBox"></div>
 </div>
 
@@ -315,33 +151,21 @@
 </div>
 
 <script>
-    // ===================== API 키 =====================
     const APPLICATION_KEY = '80bf6969-d5a8-4a28-9e0c-305757b34ae9';
     const HMAC_KEY = 'd88f5357-ecf4-42f0-80aa-cb2b9574e9b2';
 
-    // ===================== 데이터 =====================
     const vocabulary = [
-        { ko: "물병", en: "bottle" },
-        { ko: "하트", en: "heart" },
-        { ko: "장갑", en: "glove" },
-        { ko: "핸드폰", en: "phone" },
-        { ko: "우산", en: "umbrella" },
-        { ko: "별", en: "star" },
-        { ko: "찾다", en: "find" },
-        { ko: "신발", en: "shoe" },
-        { ko: "시계", en: "watch" },
-        { ko: "흰색", en: "white" },
-        { ko: "누구", en: "who" },
-        { ko: "누구의", en: "whose" },
-        { ko: "나의", en: "my" },
-        { ko: "나의 것", en: "mine" },
-        { ko: "너의 / 너의 것", en: "your" },
-        { ko: "너의 것", en: "yours" },
-        { ko: "가지다", en: "have" },
-        { ko: "가지다", en: "has" },
+        { ko: "물병", en: "bottle" }, { ko: "하트", en: "heart" },
+        { ko: "장갑", en: "glove" }, { ko: "핸드폰", en: "phone" },
+        { ko: "우산", en: "umbrella" }, { ko: "별", en: "star" },
+        { ko: "찾다", en: "find" }, { ko: "신발", en: "shoe" },
+        { ko: "시계", en: "watch" }, { ko: "흰색", en: "white" },
+        { ko: "누구", en: "who" }, { ko: "누구의", en: "whose" },
+        { ko: "나의", en: "my" }, { ko: "나의 것", en: "mine" },
+        { ko: "너의 / 너의 것", en: "your" }, { ko: "너의 것", en: "yours" },
+        { ko: "가지다", en: "have" }, { ko: "가지다", en: "has" },
         { ko: "동그라미", en: "circle" },
     ];
-
     const sentences = [
         { ko: "이거 누구의 물병이야?", en: "Whose bottle is this?" },
         { ko: "이것은 수호의 것이야.", en: "It's Suho's." },
@@ -349,24 +173,34 @@
         { ko: "아니, 이것은 나의 것이 아니야.", en: "No, it's not mine." },
     ];
 
-    // ===================== 상태 =====================
     let currentMode = 'ko-to-en';
-    let currentIndex = 0;
-    let score = 0;
-    let streak = 0;
-    let doneSet = new Set();
     let currentQuestion = null;
-    let hintLevel = 0;
+    let currentIndex = 0;
+    let score = 0, streak = 0, hintLevel = 0;
+    let doneSet = new Set();
     let editor = null;
     let recognizedText = '';
 
-    // ===================== MyScript 초기화 =====================
-    async function initMyScript() {
-        const editorElement = document.getElementById('editor');
+    // ✅ SDK 로드 확인 후 초기화
+    function waitForSDK(callback, tries = 0) {
+        if (typeof iink !== 'undefined') {
+            console.log('✅ iink SDK 로드됨:', Object.keys(iink));
+            callback();
+        } else if (tries < 20) {
+            setTimeout(() => waitForSDK(callback, tries + 1), 300);
+        } else {
+            setStatus('error', '❌ SDK 로드 실패 - 인터넷 연결 확인');
+            initFallbackCanvas();
+        }
+    }
+
+    async function initEditor() {
+        const editorEl = document.getElementById('editor');
+        console.log('iink 객체 확인:', typeof iink, iink);
 
         try {
-            // iink SDK 초기화
-            editor = await iink.Editor.create(editorElement, {
+            // ✅ iink-ts 1.x 방식
+            editor = await iink.Editor.create(editorEl, {
                 configuration: {
                     server: {
                         scheme: 'https',
@@ -377,259 +211,231 @@
                     recognition: {
                         type: 'TEXT',
                         text: {
+                            language: 'en_US',
                             guides: { enable: true },
                             smartGuide: false,
-                            language: 'en_US',
                         }
-                    },
-                    rendering: {
-                        guides: { enable: true }
                     }
                 }
             });
 
-            // 인식 결과 이벤트
-            editorElement.addEventListener('exported', (e) => {
-                const exports = e.detail?.exports;
-                if (exports && exports['text/plain']) {
-                    recognizedText = exports['text/plain'].trim();
-                    document.getElementById('recognizedText').textContent =
-                        recognizedText || '✍️ 계속 써보세요...';
+            editorEl.addEventListener('exported', (e) => {
+                console.log('exported:', e.detail);
+                const exp = e.detail?.exports;
+                const text = exp?.['text/plain'] || '';
+                if (text) {
+                    recognizedText = text.trim();
+                    document.getElementById('recognizedBox').textContent = recognizedText;
                 }
             });
 
-            // 연결 성공
             setStatus('ready', '✅ MyScript 연결 완료!');
-            setTimeout(() => {
-                document.getElementById('statusBadge').style.display = 'none';
-            }, 2000);
+            setTimeout(() => document.getElementById('statusBox').style.display = 'none', 2000);
 
         } catch (err) {
-            console.error('MyScript 초기화 실패:', err);
-            setStatus('error', '❌ 연결 실패 - 키를 확인해주세요');
-            fallbackMode();
+            console.error('Editor.create 실패:', err);
+            // ✅ 구버전 방식 시도
+            tryLegacyInit(editorEl, err);
+        }
+    }
+
+    function tryLegacyInit(editorEl, prevErr) {
+        try {
+            console.log('구버전 방식 시도...');
+            const options = {
+                recognitionParams: {
+                    type: 'TEXT',
+                    protocol: 'WEBSOCKET',
+                    apiVersion: 'V4',
+                    server: {
+                        scheme: 'https',
+                        host: 'cloud.myscript.com',
+                        applicationKey: APPLICATION_KEY,
+                        hmacKey: HMAC_KEY,
+                    },
+                    v4: {
+                        lang: 'en_US',
+                        text: { guides: { enable: true } }
+                    }
+                }
+            };
+
+            if (typeof iink.register === 'function') {
+                iink.register(editorEl, options);
+            } else if (typeof iink.default?.register === 'function') {
+                iink.default.register(editorEl, options);
+            } else {
+                throw new Error('register 함수 없음');
+            }
+
+            editorEl.addEventListener('exported', (e) => {
+                const text = e.detail?.exports?.['text/plain'] || '';
+                if (text) {
+                    recognizedText = text.trim();
+                    document.getElementById('recognizedBox').textContent = recognizedText;
+                }
+            });
+
+            setStatus('ready', '✅ MyScript 연결 완료! (legacy)');
+            setTimeout(() => document.getElementById('statusBox').style.display = 'none', 2000);
+
+        } catch (err) {
+            console.error('구버전도 실패:', err);
+            setStatus('error', `❌ 연결 실패: ${prevErr.message}`);
+            initFallbackCanvas();
         }
     }
 
     function setStatus(type, msg) {
-        const badge = document.getElementById('statusBadge');
-        badge.className = `status-badge status-${type}`;
-        badge.textContent = msg;
+        const box = document.getElementById('statusBox');
+        box.className = `status ${type}`;
+        box.textContent = msg;
     }
 
-    // ===================== Fallback (API 실패 시) =====================
-    function fallbackMode() {
-        const editorEl = document.getElementById('editor');
-        editorEl.innerHTML = `
-            <canvas id="fallbackCanvas" style="width:100%;height:100%;border-radius:12px;"></canvas>
-        `;
-        // 기본 캔버스 드로잉으로 대체
-        const canvas = document.getElementById('fallbackCanvas');
-        canvas.width = editorEl.offsetWidth;
-        canvas.height = 220;
+    // ✅ Fallback 캔버스
+    function initFallbackCanvas() {
+        const wrap = document.getElementById('editor-wrap');
+        wrap.innerHTML = `<canvas id="fc" style="border-radius:12px;display:block;"></canvas>`;
+        const canvas = document.getElementById('fc');
+        canvas.width = wrap.offsetWidth;
+        canvas.height = 250;
         const ctx = canvas.getContext('2d');
-        ctx.strokeStyle = '#2c3e50';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 4;
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
         let drawing = false, lx = 0, ly = 0;
-
-        canvas.addEventListener('mousedown', e => {
-            drawing = true;
+        const pos = (e, t) => {
             const r = canvas.getBoundingClientRect();
-            lx = e.clientX - r.left; ly = e.clientY - r.top;
-        });
+            const s = t ? e.touches[0] : e;
+            return { x: s.clientX - r.left, y: s.clientY - r.top };
+        };
+        canvas.addEventListener('mousedown', e => { drawing = true; const p = pos(e); lx = p.x; ly = p.y; });
         canvas.addEventListener('mousemove', e => {
             if (!drawing) return;
-            const r = canvas.getBoundingClientRect();
-            const x = e.clientX - r.left, y = e.clientY - r.top;
-            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke();
-            lx = x; ly = y;
+            const p = pos(e);
+            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p.x, p.y); ctx.stroke();
+            lx = p.x; ly = p.y;
         });
         canvas.addEventListener('mouseup', () => drawing = false);
         canvas.addEventListener('touchstart', e => {
             e.preventDefault(); drawing = true;
-            const r = canvas.getBoundingClientRect();
-            lx = e.touches[0].clientX - r.left; ly = e.touches[0].clientY - r.top;
+            const p = pos(e, true); lx = p.x; ly = p.y;
         }, { passive: false });
         canvas.addEventListener('touchmove', e => {
             e.preventDefault(); if (!drawing) return;
-            const r = canvas.getBoundingClientRect();
-            const x = e.touches[0].clientX - r.left, y = e.touches[0].clientY - r.top;
-            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke();
-            lx = x; ly = y;
+            const p = pos(e, true);
+            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p.x, p.y); ctx.stroke();
+            lx = p.x; ly = p.y;
         }, { passive: false });
         canvas.addEventListener('touchend', () => drawing = false);
 
-        document.getElementById('recognizedText').textContent = '✍️ 쓰고 [확인] 버튼을 눌러주세요';
+        document.getElementById('recognizedBox').textContent =
+            '⚠️ MyScript 연결 안됨 - 키보드로 입력해주세요';
+
+        // 키보드 입력창 추가
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '여기에 직접 입력하세요';
+        input.style.cssText = `
+            width:100%; margin-top:10px; padding:12px;
+            border:2px solid #ddd; border-radius:50px;
+            font-size:1.1em; text-align:center;
+        `;
+        input.addEventListener('input', () => {
+            recognizedText = input.value;
+            document.getElementById('recognizedBox').textContent = recognizedText || '✍️ 입력 중...';
+        });
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+        wrap.parentNode.insertBefore(input, wrap.nextSibling);
     }
 
-    // ===================== 에디터 제어 =====================
     async function clearEditor() {
-        if (editor) {
-            await editor.clear();
-            recognizedText = '';
-            document.getElementById('recognizedText').textContent = '✍️ 위에 손으로 써보세요!';
-        } else {
-            const canvas = document.getElementById('fallbackCanvas');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        }
+        recognizedText = '';
+        document.getElementById('recognizedBox').textContent = '✍️ 손으로 쓰면 여기에 인식돼요';
         document.getElementById('resultBox').style.display = 'none';
         hintLevel = 0;
+        if (editor?.clear) await editor.clear();
+        else {
+            const fc = document.getElementById('fc');
+            if (fc) fc.getContext('2d').clearRect(0, 0, fc.width, fc.height);
+        }
     }
 
-    async function undoEditor() {
-        if (editor) await editor.undo();
-    }
-
-    // ===================== 모드 설정 =====================
     function setMode(mode) {
         currentMode = mode;
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        const modeMap = { 'ko-to-en': 'mode1', 'en-to-ko': 'mode2', 'sentence': 'mode3' };
-        document.getElementById(modeMap[mode]).classList.add('active');
-
-        // 언어 설정 변경
-        if (editor) {
-            const lang = mode === 'en-to-ko' ? 'ko_KR' : 'en_US';
-            editor.configuration.recognition.text.language = lang;
-        }
-
-        currentIndex = 0;
-        doneSet.clear();
-        score = 0;
-        streak = 0;
-        updateScore();
-        loadQuestion();
-        buildWordList();
+        document.getElementById(mode === 'ko-to-en' ? 'mode1' : 'mode3').classList.add('active');
+        doneSet.clear(); score = 0; streak = 0;
+        updateScore(); loadQuestion(); buildWordList();
     }
 
-    // ===================== 문제 로드 =====================
     function loadQuestion() {
         clearEditor();
-        document.getElementById('resultBox').style.display = 'none';
-        hintLevel = 0;
-
         const pool = currentMode === 'sentence' ? sentences : vocabulary;
         const remaining = pool.filter((_, i) => !doneSet.has(i));
-
         if (remaining.length === 0) {
             doneSet.clear();
-            showCompletion();
+            document.getElementById('questionText').textContent = '🏆 모두 완료!';
+            document.getElementById('questionHint').textContent = `최종 점수: ${score}점`;
             return;
         }
-
-        const randomIdx = Math.floor(Math.random() * remaining.length);
-        const originalIdx = pool.indexOf(remaining[randomIdx]);
-        currentIndex = originalIdx;
-        currentQuestion = pool[originalIdx];
+        const ri = Math.floor(Math.random() * remaining.length);
+        currentIndex = pool.indexOf(remaining[ri]);
+        currentQuestion = pool[currentIndex];
 
         if (currentMode === 'ko-to-en') {
             document.getElementById('questionLabel').textContent = '이 단어를 영어로 써보세요! 🇺🇸';
             document.getElementById('questionText').textContent = currentQuestion.ko;
             document.getElementById('questionHint').textContent = `(${currentQuestion.en.length}글자)`;
-        } else if (currentMode === 'en-to-ko') {
-            document.getElementById('questionLabel').textContent = '이 단어를 한글로 써보세요! 🇰🇷';
-            document.getElementById('questionText').textContent = currentQuestion.en;
-            document.getElementById('questionHint').textContent = `(${currentQuestion.ko.length}글자)`;
         } else {
             document.getElementById('questionLabel').textContent = '이 문장을 영어로 써보세요! 📝';
             document.getElementById('questionText').textContent = currentQuestion.ko;
             document.getElementById('questionHint').textContent = '';
         }
-
-        updateProgress(pool);
+        document.getElementById('progressBar').style.width =
+            (doneSet.size / pool.length * 100) + '%';
     }
 
-    function updateProgress(pool) {
-        const pct = (doneSet.size / pool.length) * 100;
-        document.getElementById('progressBar').style.width = pct + '%';
-    }
-
-    // ===================== 정답 확인 =====================
     function checkAnswer() {
-        if (!currentQuestion) return;
-
-        const userInput = recognizedText.trim();
-        if (!userInput) {
-            alert('먼저 손으로 써보세요! ✍️');
-            return;
+        if (!currentQuestion || !recognizedText.trim()) {
+            alert('먼저 써보세요! ✍️'); return;
         }
-
-        let correct, correctAnswer;
-        if (currentMode === 'ko-to-en') {
-            correctAnswer = currentQuestion.en;
-            correct = normalize(userInput) === normalize(correctAnswer);
-        } else if (currentMode === 'en-to-ko') {
-            correctAnswer = currentQuestion.ko;
-            correct = userInput.trim() === correctAnswer.trim();
-        } else {
-            correctAnswer = currentQuestion.en;
-            correct = normalize(userInput) === normalize(correctAnswer);
-        }
-
+        const correct = normalize(recognizedText) === normalize(currentQuestion.en);
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
-
         if (correct) {
-            const bonus = streak * 2;
-            score += 10 + bonus;
-            streak++;
+            score += 10 + streak * 2; streak++;
             doneSet.add(currentIndex);
             resultBox.className = 'result-box result-correct';
-            resultBox.innerHTML = `🎉 정답이에요! +${10 + (streak - 1) * 2}점
-                <div class="answer-display">✅ ${correctAnswer}</div>`;
+            resultBox.innerHTML = `🎉 정답! +${10 + (streak-1)*2}점<br><small>✅ ${currentQuestion.en}</small>`;
             confetti();
         } else {
             streak = 0;
             resultBox.className = 'result-box result-wrong';
-            resultBox.innerHTML = `😅 다시 해봐요!
-                <div class="answer-display">
-                    내가 쓴 것: <strong>${userInput}</strong><br>
-                    정답: <strong>${correctAnswer}</strong>
-                </div>`;
+            resultBox.innerHTML = `😅 다시 해봐요!<br>
+                <small>내가 쓴 것: <b>${recognizedText}</b></small><br>
+                <small>정답: <b>${currentQuestion.en}</b></small>`;
         }
-
-        updateScore();
-        buildWordList();
+        updateScore(); buildWordList();
     }
 
     function normalize(str) {
         return str.toLowerCase().replace(/[^a-z0-9']/g, '').trim();
     }
-
     function updateScore() {
         document.getElementById('scoreText').textContent = score;
         document.getElementById('streakText').textContent = streak;
     }
-
-    // ===================== 힌트 =====================
     function showHint() {
         if (!currentQuestion) return;
-        const answer = currentMode === 'en-to-ko' ? currentQuestion.ko : currentQuestion.en;
-        hintLevel = Math.min(hintLevel + 1, answer.length);
-        const hint = answer.substring(0, hintLevel) + '_'.repeat(answer.length - hintLevel);
-        document.getElementById('questionHint').textContent = `힌트: ${hint}`;
-        score = Math.max(0, score - 2);
-        updateScore();
+        const ans = currentQuestion.en;
+        hintLevel = Math.min(hintLevel + 1, ans.length);
+        document.getElementById('questionHint').textContent =
+            `힌트: ${ans.substring(0, hintLevel)}${'_'.repeat(ans.length - hintLevel)}`;
+        score = Math.max(0, score - 2); updateScore();
     }
+    function nextQuestion() { loadQuestion(); }
 
-    // ===================== 다음 문제 =====================
-    function nextQuestion() {
-        loadQuestion();
-    }
-
-    // ===================== 완료 =====================
-    function showCompletion() {
-        document.getElementById('questionText').textContent = '🏆 모두 완료!';
-        document.getElementById('questionLabel').textContent = `최종 점수: ${score}점`;
-        document.getElementById('questionHint').textContent = '다시 시작하려면 모드를 선택하세요!';
-    }
-
-    // ===================== 단어 목록 =====================
     function buildWordList() {
         const pool = currentMode === 'sentence' ? sentences : vocabulary;
         const grid = document.getElementById('wordGrid');
@@ -642,30 +448,24 @@
         });
     }
 
-    // ===================== 컨페티 =====================
     function confetti() {
-        const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#c77dff'];
+        const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff'];
         for (let i = 0; i < 40; i++) {
             const el = document.createElement('div');
             el.style.cssText = `
-                position: fixed;
-                width: ${6 + Math.random() * 8}px;
-                height: ${6 + Math.random() * 8}px;
-                background: ${colors[Math.floor(Math.random() * colors.length)]};
-                border-radius: 50%;
-                left: ${Math.random() * 100}vw;
-                top: -10px;
-                z-index: 9999;
-                pointer-events: none;
-                animation: fall ${1 + Math.random() * 2}s linear forwards;
+                position:fixed; width:10px; height:10px;
+                background:${colors[Math.floor(Math.random()*colors.length)]};
+                border-radius:50%; left:${Math.random()*100}vw; top:-10px;
+                z-index:9999; pointer-events:none;
+                animation:fall ${1+Math.random()*2}s linear forwards;
             `;
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 3000);
         }
     }
 
-    // ===================== 초기화 =====================
-    initMyScript();
+    // ✅ SDK 로드 기다렸다가 초기화
+    waitForSDK(initEditor);
     loadQuestion();
     buildWordList();
 </script>
